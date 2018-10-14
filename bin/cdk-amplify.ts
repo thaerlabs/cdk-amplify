@@ -1,24 +1,20 @@
 #!/usr/bin/env node
-import sns = require('@aws-cdk/aws-sns');
-import sqs = require('@aws-cdk/aws-sqs');
 import cdk = require('@aws-cdk/cdk');
+import { config } from './config';
+import { UserPool } from './cognito';
+
+const scopeName = `${config.name}${config.stage}`;
 
 class CdkAmplifyStack extends cdk.Stack {
   constructor(parent: cdk.App, name: string, props?: cdk.StackProps) {
     super(parent, name, props);
 
-    const queue = new sqs.Queue(this, 'CdkAmplifyQueue', {
-      visibilityTimeoutSec: 300
-    });
-
-    const topic = new sns.Topic(this, 'CdkAmplifyTopic');
-
-    topic.subscribeQueue(queue);
+    new UserPool(this, `${name}UserPool`);
   }
 }
 
-const app = new cdk.App(process.argv);
+const app = new cdk.App();
 
-new CdkAmplifyStack(app, 'CdkAmplifyStack');
+new CdkAmplifyStack(app, scopeName);
 
-process.stdout.write(app.run());
+app.run();
