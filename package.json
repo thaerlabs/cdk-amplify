@@ -1,8 +1,8 @@
 {
   "name": "cdk-amplify",
   "version": "0.1.0",
-  "main": "bin/index.js",
-  "types": "bin/index.d.ts",
+  "main": "bin/main.js",
+  "types": "bin/main.d.ts",
   "bin": {
     "cdk-amplify": "bin/cdk-amplify.js"
   },

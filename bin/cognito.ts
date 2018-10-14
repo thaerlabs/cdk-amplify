@@ -1,12 +1,16 @@
 import cognito = require('@aws-cdk/aws-cognito');
 import cdk = require('@aws-cdk/cdk');
 
-export class UserPool extends cdk.Construct {
+export class Cognito extends cdk.Construct {
+  userPool: cognito.cloudformation.UserPoolResource;
+  client: cognito.cloudformation.UserPoolClientResource;
+  identity: cognito.cloudformation.IdentityPoolResource;
+
   constructor(parent: cdk.Construct, name: string) {
     super(parent, name);
 
     // Create chat room user pool
-    const userPool = new cognito.cloudformation.UserPoolResource(
+    this.userPool = new cognito.cloudformation.UserPoolResource(
       this,
       'UserPool',
       {
@@ -31,16 +35,24 @@ export class UserPool extends cdk.Construct {
     );
 
     // Web client
-    new cognito.cloudformation.UserPoolClientResource(this, 'UserPoolClient', {
-      clientName: 'WebUserPoolClient',
-      explicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
-      refreshTokenValidity: 30,
-      userPoolId: userPool.ref
-    });
+    this.client = new cognito.cloudformation.UserPoolClientResource(
+      this,
+      'UserPoolClient',
+      {
+        clientName: 'WebUserPoolClient',
+        explicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
+        refreshTokenValidity: 30,
+        userPoolId: this.userPool.ref
+      }
+    );
 
     // Identity pool
-    new cognito.cloudformation.IdentityPoolResource(this, 'IdentityPool', {
-      allowUnauthenticatedIdentities: true
-    });
+    this.identity = new cognito.cloudformation.IdentityPoolResource(
+      this,
+      'IdentityPool',
+      {
+        allowUnauthenticatedIdentities: true
+      }
+    );
   }
 }

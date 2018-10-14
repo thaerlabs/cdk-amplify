@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import cdk = require('@aws-cdk/cdk');
 import { config } from './config';
-import { UserPool } from './cognito';
+import { Cognito } from './cognito';
 
 const scopeName = `${config.name}${config.stage}`;
 
@@ -9,7 +9,7 @@ class CdkAmplifyStack extends cdk.Stack {
   constructor(parent: cdk.App, name: string, props?: cdk.StackProps) {
     super(parent, name, props);
 
-    new UserPool(this, `${name}UserPool`);
+    new Cognito(this, `${name}UserPool`);
   }
 }
 
