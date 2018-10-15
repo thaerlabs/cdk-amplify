@@ -14,7 +14,9 @@
     "deploy": "cdk deploy",
     "list": "cdk ls --long",
     "synth": "cdk synth",
-    "client:watch": "parcel client/index.html"
+    "client:watch": "parcel client/index.html",
+    "client:build": "parcel build client/app.js",
+    "cliet:exports": "cdk synth -j > tmp/stack.json"
   },
   "devDependencies": {
     "@types/node": "8.9.4",
