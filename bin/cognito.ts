@@ -17,6 +17,7 @@ export class Cognito extends cdk.Construct {
         adminCreateUserConfig: {
           allowAdminCreateUserOnly: false
         },
+        usernameAttributes: ['email'],
         policies: {
           passwordPolicy: {
             minimumLength: 6,
@@ -28,9 +29,13 @@ export class Cognito extends cdk.Construct {
             attributeDataType: 'String',
             name: 'email',
             required: true
+          },
+          {
+            attributeDataType: 'String',
+            name: 'name',
+            required: true
           }
-        ],
-        autoVerifiedAttributes: ['email']
+        ]
       }
     );
 

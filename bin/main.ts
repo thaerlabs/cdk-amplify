@@ -2,6 +2,7 @@
 import cdk = require('@aws-cdk/cdk');
 import { config } from './config';
 import { Cognito } from './cognito';
+import { ConfigGenerator } from './genconfig';
 
 const scopeName = `${config.name}${config.stage}`;
 
@@ -14,7 +15,12 @@ class CdkAmplifyStack extends cdk.Stack {
 }
 
 const app = new cdk.App();
-
-new CdkAmplifyStack(app, scopeName);
+const amplify = new CdkAmplifyStack(app, scopeName, {
+  env: {
+    region: 'eu-west-1'
+  }
+});
 
 app.run();
+
+new ConfigGenerator(app.synthesizeStack(amplify.name));
