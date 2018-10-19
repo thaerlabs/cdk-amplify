@@ -17,6 +17,7 @@ export class Cognito extends cdk.Construct {
         adminCreateUserConfig: {
           allowAdminCreateUserOnly: false
         },
+        autoVerifiedAttributes: ['email'],
         usernameAttributes: ['email'],
         policies: {
           passwordPolicy: {
@@ -45,7 +46,6 @@ export class Cognito extends cdk.Construct {
       'UserPoolClient',
       {
         clientName: 'WebUserPoolClient',
-        explicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
         refreshTokenValidity: 30,
         userPoolId: this.userPool.ref
       }
@@ -56,7 +56,13 @@ export class Cognito extends cdk.Construct {
       this,
       'IdentityPool',
       {
-        allowUnauthenticatedIdentities: true
+        allowUnauthenticatedIdentities: false,
+        cognitoIdentityProviders: [
+          {
+            clientId: this.client.userPoolClientId,
+            providerName: this.userPool.userPoolProviderName
+          }
+        ]
       }
     );
   }
