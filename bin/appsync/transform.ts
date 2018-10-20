@@ -1,10 +1,11 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import * as path from 'path';
 import GraphQLTransform from 'graphql-transformer-core';
 import DynamoDBModelTransformer from 'graphql-dynamodb-transformer';
 // import ModelConnectionTransformer from 'graphql-connection-transformer';
 // import ModelAuthTransformer from 'graphql-auth-transformer';
 import AppSyncTransformer from 'graphql-appsync-transformer';
+import Resource from 'cloudform/types/resource';
 // import VersionedModelTransformer from 'graphql-versioned-transformer';
 
 const paths = {
@@ -24,16 +25,25 @@ const transformer = new GraphQLTransform({
   ]
 });
 
-export function run() {
-  const schema = readFileSync(paths.schema, 'utf-8');
+interface TransformResult {
+  schema: string;
+  resources: {
+    [key: string]: Resource;
+  };
+}
+
+export function run(schema: string): TransformResult {
   const cfdoc = transformer.transform(schema);
 
   const out: any = {
     schema: null,
+    tables: [],
     resolvers: []
   };
 
   if (cfdoc.Resources) {
+    out.resources = cfdoc.Resources;
+
     writeFileSync(
       paths.tmpResources,
       JSON.stringify(cfdoc.Resources, null, 2),
@@ -79,13 +89,11 @@ export function run() {
               props.ResponseMappingTemplate,
               'utf-8'
             );
-
-            out.resolvers.push(resource.Properties);
           }
           break;
       }
     }
-
-    return out;
   }
+
+  return out;
 }

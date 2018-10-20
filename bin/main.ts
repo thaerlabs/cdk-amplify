@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import cdk = require('@aws-cdk/cdk');
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { config } from './config';
 import { Cognito } from './cognito';
 import { AppSync } from './appsync';
@@ -14,7 +16,17 @@ class CdkAmplifyStack extends cdk.Stack {
     const cognito = new Cognito(this, `${name}Cognito`);
     new AppSync(this, `${name}AppSync`, {
       cognito,
-      region: this.env.region
+      region: this.env.region,
+      models: {
+        Note: {
+          table: {
+            tableName: `${name}NoteTable`,
+            readCapacity: 1,
+            writeCapacity: 1
+          }
+        }
+      },
+      schema: readFileSync(resolve(__dirname, './schema.graphql'), 'utf-8')
     });
   }
 }
