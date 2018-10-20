@@ -19,9 +19,9 @@ interface AppSyncProps {
 /**
  * Given `Model`
  * look for the following:
- * - ModelTable x
- * - ModelIAMRole x
- * - ModelDataSource x
+ * - ModelTable
+ * - ModelIAMRole
+ * - ModelDataSource
  *
  * - GetModelResolver
  * - ListModelResolver
@@ -34,7 +34,7 @@ export class AppSync extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: AppSyncProps) {
     super(parent, name);
 
-    const { schema } = run(props.schema);
+    const { schema, resources } = run(props.schema);
 
     const api = new appsync.cloudformation.GraphQLApiResource(
       this,
@@ -92,7 +92,7 @@ export class AppSync extends cdk.Construct {
       );
 
       // create Datasource
-      new appsync.cloudformation.DataSourceResource(
+      const datasource = new appsync.cloudformation.DataSourceResource(
         this,
         `${modelName}DynamoDBTableDataSource`,
         {
@@ -107,6 +107,72 @@ export class AppSync extends cdk.Construct {
           }
         }
       );
+
+      // Add resolvers
+      addDynamoDBResolver(
+        this,
+        modelName,
+        'Get',
+        resources,
+        api.graphQlApiApiId,
+        datasource.dataSourceName
+      );
+
+      addDynamoDBResolver(
+        this,
+        modelName,
+        'List',
+        resources,
+        api.graphQlApiApiId,
+        datasource.dataSourceName
+      );
+
+      addDynamoDBResolver(
+        this,
+        modelName,
+        'Create',
+        resources,
+        api.graphQlApiApiId,
+        datasource.dataSourceName
+      );
+
+      addDynamoDBResolver(
+        this,
+        modelName,
+        'Update',
+        resources,
+        api.graphQlApiApiId,
+        datasource.dataSourceName
+      );
+
+      addDynamoDBResolver(
+        this,
+        modelName,
+        'Delete',
+        resources,
+        api.graphQlApiApiId,
+        datasource.dataSourceName
+      );
     }
   }
+}
+
+function addDynamoDBResolver(
+  parent: cdk.Construct,
+  modelName: string,
+  operation: string,
+  resources: any,
+  graphQlApiApiId: string,
+  dataSourceName: string
+) {
+  const resolverName = `${operation}${modelName}Resolver`;
+  const resolver = resources[resolverName].Properties;
+  new appsync.cloudformation.ResolverResource(parent, resolverName, {
+    apiId: graphQlApiApiId,
+    dataSourceName: dataSourceName,
+    typeName: resolver.TypeName,
+    fieldName: resolver.FieldName,
+    requestMappingTemplate: resolver.RequestMappingTemplate,
+    responseMappingTemplate: resolver.ResponseMappingTemplate
+  });
 }
