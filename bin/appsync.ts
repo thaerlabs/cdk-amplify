@@ -1,6 +1,7 @@
 import cdk = require('@aws-cdk/cdk');
 import appsync = require('@aws-cdk/aws-appsync');
 import { Cognito } from './cognito';
+import { run } from './graphql/schema';
 
 interface AppSyncConfig {
   cognito: Cognito;
@@ -10,6 +11,8 @@ interface AppSyncConfig {
 export class AppSync extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, config: AppSyncConfig) {
     super(parent, name);
+
+    const schema = run();
 
     const api = new appsync.cloudformation.GraphQLApiResource(
       this,
@@ -27,25 +30,7 @@ export class AppSync extends cdk.Construct {
 
     new appsync.cloudformation.GraphQLSchemaResource(this, 'GraphQLSchema', {
       apiId: api.graphQlApiApiId,
-      definition: `
-      schema {
-        query: Query
-        mutation: Mutation
-      }
-      type Query {
-          # Get a single value of type 'Note' by primary key.
-          singleNote(id: ID!): Note
-      }
-      type Mutation {
-          # Put a single value of type 'Note'.
-          # If an item exists it's updated. If it does not it's created.
-          putNote(id: ID!, title: String!): Note
-      }
-      type Note {
-          id: ID!
-          title: String!
-      }
-      `
+      definition: schema.schema
     });
   }
 }
