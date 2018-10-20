@@ -1,5 +1,5 @@
 import cxapi = require('@aws-cdk/cx-api');
-import { CloudFormation } from 'aws-sdk';
+import { AppSync, CloudFormation } from 'aws-sdk';
 import { writeFileSync } from 'fs';
 
 export class ConfigGenerator {
@@ -78,8 +78,10 @@ export class ConfigGenerator {
   async fetchResourceConfigurations(
     resources: CloudFormation.Types.StackResourceSummaries
   ) {
+    const asyncResources: Promise<any>[] = [];
     const config: any = {
-      Auth: {}
+      Auth: {},
+      API: {}
     };
 
     resources.forEach(resource => {
@@ -100,6 +102,32 @@ export class ConfigGenerator {
             userPoolWebClientId: resource.PhysicalResourceId
           });
           break;
+        case 'AWS::AppSync::GraphQLApi':
+          const appsync = new AppSync({
+            region: this.stack.environment.region
+          });
+          const apiId = resource.PhysicalResourceId
+            ? resource.PhysicalResourceId.split('/')[1]
+            : '';
+          asyncResources.push(
+            appsync
+              .getGraphqlApi({
+                apiId
+              })
+              .promise()
+          );
+          break;
+      }
+    });
+
+    const resolvedAsyncResources = await Promise.all(asyncResources);
+
+    resolvedAsyncResources.forEach(resource => {
+      if (resource.graphqlApi) {
+        config.API = {
+          graphql_endpoint: resource.graphqlApi.uris.GRAPHQL,
+          graphql_endpoint_iam_region: this.stack.environment.region
+        };
       }
     });
 
